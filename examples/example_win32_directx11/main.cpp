@@ -9,6 +9,10 @@
 #include <dinput.h>
 #include <tchar.h>
 
+#include "../implot/implot.h"
+#include "../implot/implot.cpp"
+#include "../implot/implot_demo.cpp"
+
 // Data
 static ID3D11Device*            g_pd3dDevice = NULL;
 static ID3D11DeviceContext*     g_pd3dDeviceContext = NULL;
@@ -103,12 +107,40 @@ int main(int, char**)
         if (show_demo_window)
             ImGui::ShowDemoWindow(&show_demo_window);
 
+        if (ImPlot::BeginPlot("my plot", nullptr, "plot"))
+        {
+            static const int num_plot_points = 20000;
+            ImPlot::PlotLine("sin(50*x)",
+                [](void*, int idx) {
+                    float r = 0.9f; // outer radius
+                    float a = 0; // inner radius
+                    float b = 0.05f; // increment per rev
+                    float n = (r - a) / b; // number  of revolutions
+                    double th = 2 * n * 3.1415f; // angle
+                    float Th = float(th * idx / (num_plot_points - 1));
+                    return ImPlotPoint(200 + 0.5f + (a + b * Th / (2.0f * (float)3.1415f)) * cosf(Th), 200 + 0.5f + (a + b * Th / (2.0f * (float)3.1415f)) * sinf(Th));
+                }, nullptr, num_plot_points);
+            ImPlot::EndPlot();
+        }
+
+        ImPlot::ShowDemoWindow(NULL);
+
         // 2. Show a simple window that we create ourselves. We use a Begin/End pair to created a named window.
         {
             static float f = 0.0f;
             static int counter = 0;
 
             ImGui::Begin("Hello, world!");                          // Create a window called "Hello, world!" and append into it.
+
+            ImVec2 s = ImGui::CalcItemSize(ImVec2(150, 0), 0, 0);
+#if 0
+            ImDrawList* draw_list = ImGui::GetWindowDrawList();
+            draw_list->PrimReserve(6, 4);
+            draw_list->PrimUnreserve(6, 4);
+            draw_list->PushClipRect(ImVec2(100, 100), ImVec2(200, 200), false);
+            draw_list->AddRectFilled(ImVec2(0, 0), ImVec2(1000, 1000), IM_COL32_WHITE);
+            draw_list->PopClipRect();
+#endif
 
             ImGui::Text("This is some useful text.");               // Display some text (you can use a format strings too)
             ImGui::Checkbox("Demo Window", &show_demo_window);      // Edit bools storing our window open/close state
